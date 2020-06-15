@@ -50,3 +50,29 @@ jobs:
           command: |
             . venv/bin/activate
             make lint
+      - delploy:
+          name: Push application Docker image
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              echo "Deployiong to Google Cloud..."
+              dir ./hit-or-onbase.json
+              gcloud auth activate-service-account -- key-file ./hit-or-onbase.json
+              gcloud --quiet config set project hit-or-onbase-234765633993
+              gcloud --quiet config set compute/zone us-central
+              gcloud -q app deploy ./final_project/app.yaml -- project=hit-or-onbase-234765633993
+            fi
+deploy:
+  docker:
+    -image: google/cloud-sdk
+    steps:
+    - run: |
+        echo "Deploying to Google Cloud..."
+        gcloud --quiet config set project hit-or-onbase-234765633993
+        gcloud --quiet config set compute/zone us-central
+        gcloud auth activate-service-account --key-file=hit-or-onbase-key.json
+        gcloud -q app deploy final_project/* --project=msds-434-project-234765633993
+workflows:
+  version:2
+  build
+    jobs:
+      - build
